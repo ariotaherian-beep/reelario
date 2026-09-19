@@ -1,0 +1,130 @@
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#090909;
+  color:#f5f5f5;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+button,input{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.4}
+main{max-width:1180px;margin:auto;padding:42px 28px 120px}
+.welcome{max-width:700px;padding-top:12vh}
+.brand{
+  font-weight:900;
+  letter-spacing:.22em;
+  font-size:13px;
+  color:#9bff8c;
+}
+h1{font-size:42px;margin:12px 0}
+h2{margin:0;font-size:19px}
+p{color:#999;line-height:1.6}
+.createCard,.trackCard,.toolbar,footer{
+  border:1px solid #242424;
+  background:#111;
+  border-radius:18px;
+}
+.createCard{padding:28px;margin-top:35px}
+.createCard label{
+  display:block;color:#777;font-size:12px;
+  font-weight:800;letter-spacing:.1em
+}
+.counter{
+  display:flex;align-items:center;gap:24px;margin:20px 0
+}
+.counter strong{font-size:40px;min-width:50px;text-align:center}
+.counter button{
+  width:45px;height:45px;border-radius:50%;
+  border:1px solid #333;background:#181818;color:white;font-size:25px
+}
+button{
+  border:1px solid #303030;
+  background:#181818;color:#eee;
+  padding:11px 16px;border-radius:10px
+}
+button:hover{background:#222}
+.primary{
+  background:#f3f3f3;color:#050505;
+  border:none;font-weight:800
+}
+.primary:hover{background:white}
+header{
+  display:flex;justify-content:space-between;
+  align-items:flex-end;margin-bottom:28px
+}
+header h1{margin-bottom:0}
+.headerStats{display:flex;gap:10px}
+.headerStats span{
+  background:#151515;border:1px solid #262626;
+  padding:8px 12px;border-radius:20px;color:#aaa;font-size:13px
+}
+.toolbar{
+  display:flex;gap:10px;padding:13px;
+  position:sticky;top:10px;z-index:5;
+  backdrop-filter:blur(20px);
+  background:rgba(17,17,17,.9)
+}
+.tracks{display:flex;flex-direction:column;gap:16px;margin-top:20px}
+.trackCard{display:flex;overflow:hidden}
+.trackNumber{
+  width:90px;display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:900;color:#555;background:#0d0d0d
+}
+.trackContent{padding:24px;flex:1}
+.trackHead{display:flex;justify-content:space-between;align-items:center}
+.danger{color:#ff8585}
+.sourceTabs{display:flex;gap:8px;margin:20px 0}
+.sourceTabs .selected{
+  background:#dfffda;color:#071006;border-color:#dfffda;font-weight:800
+}
+.grid,.settings{
+  display:grid;grid-template-columns:1fr 1fr 180px;gap:12px
+}
+label{color:#888;font-size:12px;font-weight:700}
+input{
+  width:100%;margin-top:7px;padding:12px;
+  border-radius:9px;border:1px solid #303030;
+  background:#0b0b0b;color:white;outline:none
+}
+input:focus{border-color:#777}
+.find{align-self:end;height:42px}
+.uploadBox{
+  display:block;border:1px dashed #383838;
+  padding:18px;border-radius:12px;cursor:pointer
+}
+.uploadBox strong,.uploadBox small{display:block}
+.uploadBox small{
+  color:#666;margin-top:5px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:700px
+}
+.uploadBox input{margin-top:14px}
+.settings{
+  grid-template-columns:1fr 180px 180px;
+  margin-top:16px
+}
+.numberInput{position:relative}
+.numberInput span{
+  position:absolute;right:12px;top:20px;color:#555
+}
+.status{
+  margin-top:18px;color:#777;font-size:11px;
+  font-weight:900;letter-spacing:.08em
+}
+footer{
+  margin-top:25px;padding:18px 20px;
+  display:flex;justify-content:space-between;align-items:center
+}
+footer div{display:flex;flex-direction:column;gap:4px}
+footer span{color:#888}
+.message{margin-top:20px;color:#aaa}
+.floatingMessage{
+  position:fixed;right:25px;bottom:25px;
+  background:#eee;color:#111;padding:13px 18px;
+  border-radius:10px;font-weight:700
+}
+@media(max-width:750px){
+  .grid,.settings{grid-template-columns:1fr}
+  .trackNumber{width:50px}
+  header{align-items:flex-start;flex-direction:column;gap:15px}
+  .toolbar{flex-wrap:wrap}
+}
