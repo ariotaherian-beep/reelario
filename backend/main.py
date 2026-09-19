@@ -12,8 +12,10 @@ ROOT = Path(__file__).resolve().parent.parent
 STORAGE = ROOT / "storage"
 UPLOADS = STORAGE / "uploads"
 PROJECTS = STORAGE / "projects"
+PREVIEWS = STORAGE / "previews"
 
 UPLOADS.mkdir(parents=True, exist_ok=True)
+PREVIEWS.mkdir(parents=True, exist_ok=True)
 PROJECTS.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(title="Reelario", version="0.1.0")
