@@ -204,3 +204,104 @@ def get_audio_preview(filename: str):
         raise HTTPException(404, "Preview not found")
 
     return FileResponse(path, media_type="audio/mpeg")
+
+@app.post("/api/preview/reel/{project_id}")
+def create_reel_preview(project_id: str):
+    import subprocess
+
+    project_path = PROJECTS / f"{project_id}.json"
+    if not project_path.exists():
+        raise HTTPException(404, "Project not found")
+
+    data = json.loads(project_path.read_text())
+    tracks = data.get("tracks", [])
+
+    if len(tracks) < 2:
+        raise HTTPException(400, "At least 2 tracks are required")
+
+    tracks = tracks[:2]
+    clips = []
+
+    for i, track in enumerate(tracks):
+        audio = track.get("audio_path")
+        artwork = track.get("artwork_path")
+
+        if not audio or not Path(audio).exists():
+            raise HTTPException(400, f"Track {i + 1}: audio missing")
+
+        if not artwork or not Path(artwork).exists():
+            raise HTTPException(400, f"Track {i + 1}: artwork missing")
+
+        clip = PREVIEWS / f"{project_id}_clip_{i + 1}.mp4"
+
+        cmd = [
+            "ffmpeg", "-y",
+            "-loop", "1",
+            "-i", artwork,
+            "-ss", str(track.get("start_point", 0)),
+            "-i", audio,
+            "-t", str(track.get("clip_duration", 6)),
+            "-vf",
+            "scale=1080:1920:force_original_aspect_ratio=increase,"
+            "crop=1080:1920,"
+            "format=yuv420p",
+            "-r", "30",
+            "-c:v", "libx264",
+            "-preset", "veryfast",
+            "-c:a", "aac",
+            "-b:a", "192k",
+            "-shortest",
+            str(clip)
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise HTTPException(
+                500,
+                f"Track {i + 1} FFmpeg failed: {result.stderr[-1500:]}"
+            )
+
+        clips.append(clip)
+
+    concat_file = PREVIEWS / f"{project_id}_concat.txt"
+    concat_file.write_text(
+        "\n".join(f"file '{clip}'" for clip in clips)
+    )
+
+    output = PREVIEWS / f"{project_id}_reel_preview.mp4"
+
+    result = subprocess.run(
+        [
+            "ffmpeg", "-y",
+            "-f", "concat",
+            "-safe", "0",
+            "-i", str(concat_file),
+            "-c", "copy",
+            str(output)
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+        raise HTTPException(
+            500,
+            f"Concat failed: {result.stderr[-1500:]}"
+        )
+
+    return {
+        "status": "ok",
+        "tracks": 2,
+        "preview_url": f"/api/preview/video/{output.name}"
+    }
+
+
+@app.get("/api/preview/video/{filename}")
+def get_reel_preview(filename: str):
+    path = PREVIEWS / filename
+
+    if not path.exists():
+        raise HTTPException(404, "Video preview not found")
+
+    return FileResponse(path, media_type="video/mp4")
