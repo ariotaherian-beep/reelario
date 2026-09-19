@@ -153,3 +153,52 @@ def mixario_status():
         "mode": "future_api",
         "message": "Mixario connector reserved for next stage"
     }
+
+@app.post("/api/preview/audio")
+async def create_audio_preview(file: UploadFile = File(...)):
+    import subprocess
+
+    ext = Path(file.filename or "").suffix.lower()
+    if ext not in [".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg"]:
+        raise HTTPException(400, "Unsupported audio format")
+
+    file_id = uuid.uuid4().hex
+    source = UPLOADS / f"{file_id}{ext}"
+    preview = PREVIEWS / f"{file_id}_preview.mp3"
+
+    with source.open("wb") as out:
+        shutil.copyfileobj(file.file, out)
+
+    result = subprocess.run(
+        [
+            "ffmpeg", "-y",
+            "-ss", "0",
+            "-i", str(source),
+            "-t", "6",
+            "-vn",
+            "-codec:a", "libmp3lame",
+            "-b:a", "192k",
+            str(preview)
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+        raise HTTPException(500, f"FFmpeg failed: {result.stderr[-1000:]}")
+
+    return {
+        "status": "ok",
+        "duration": 6,
+        "preview_url": f"/api/preview/{preview.name}"
+    }
+
+@app.get("/api/preview/{filename}")
+def get_audio_preview(filename: str):
+    from fastapi.responses import FileResponse
+
+    path = PREVIEWS / filename
+    if not path.exists():
+        raise HTTPException(404, "Preview not found")
+
+    return FileResponse(path, media_type="audio/mpeg")
