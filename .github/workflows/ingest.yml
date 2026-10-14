@@ -1,0 +1,49 @@
+name: Video Ingestion
+on:
+  workflow_dispatch:
+    inputs:
+      sample_url:
+        description: 'Public HTTPS test video URL only; do not enter private media URLs'
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+      - name: Download public sample
+        env:
+          SAMPLE_URL: ${{ inputs.sample_url }}
+        run: |
+          python - <<'PY'
+          import os, urllib.parse, urllib.request
+          url = os.environ["SAMPLE_URL"]
+          p = urllib.parse.urlparse(url)
+          if p.scheme != "https" or not p.hostname:
+              raise ValueError("Valid HTTPS URL required")
+          req = urllib.request.Request(url, headers={"User-Agent": "Reelario-MVP/1.0"})
+          with urllib.request.urlopen(req, timeout=30) as response, open("sample.mp4", "wb") as out:
+              if urllib.parse.urlparse(response.url).scheme != "https":
+                  raise ValueError("HTTPS redirect required")
+              while True:
+                  chunk = response.read(1024 * 1024)
+                  if not chunk:
+                      break
+                  if out.tell() + len(chunk) > 50 * 1024 * 1024:
+                      raise ValueError("Maximum 50 MiB")
+                  out.write(chunk)
+          PY
+      - name: Analyze
+        run: python backend/main.py sample.mp4 --output output
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reelario-ingestion
+          path: output/
+          retention-days: 1
